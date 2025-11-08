@@ -4,15 +4,14 @@ FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim AS builder
 WORKDIR /app
 
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     tesseract-ocr \
+    libtesseract-dev \
+    libleptonica-dev \
     poppler-utils \
-    leptonica \
-    gcc \
-    g++ \
-    make \
-    musl-dev \
-    libstdc++
+    poppler-cpp \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files only (for caching)
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -35,11 +34,13 @@ FROM python:3.10-slim
 WORKDIR /app
 
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     tesseract-ocr \
+    libtesseract-dev \
+    libleptonica-dev \
     poppler-utils \
-    leptonica \
-    libstdc++
+    poppler-cpp \
+    && rm -rf /var/lib/apt/lists/*
 
 
 RUN addgroup -S app && adduser -S app -G app
