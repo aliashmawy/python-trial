@@ -6,15 +6,14 @@ WORKDIR /app
 
 RUN apk add --no-cache \
     tesseract-ocr \
-    tesseract-ocr-data-eng \
+    tesseract-ocr-lang-eng \
     poppler-utils \
-    poppler-cpp \
     leptonica \
-    libstdc++ \
-    musl-dev \
     gcc \
     g++ \
-    make
+    make \
+    musl-dev \
+    libstdc++
 
 # Copy dependency files only (for caching)
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -39,9 +38,8 @@ WORKDIR /app
 
 RUN apk add --no-cache \
     tesseract-ocr \
-    tesseract-ocr-data-eng \
+    tesseract-ocr-lang-eng \
     poppler-utils \
-    poppler-cpp \
     leptonica \
     libstdc++
 
