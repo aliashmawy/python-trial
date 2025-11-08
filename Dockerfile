@@ -6,7 +6,6 @@ WORKDIR /app
 
 RUN apk add --no-cache \
     tesseract-ocr \
-    tesseract-ocr-lang-eng \
     poppler-utils \
     leptonica \
     gcc \
@@ -38,7 +37,6 @@ WORKDIR /app
 
 RUN apk add --no-cache \
     tesseract-ocr \
-    tesseract-ocr-lang-eng \
     poppler-utils \
     leptonica \
     libstdc++
