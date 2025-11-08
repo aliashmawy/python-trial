@@ -1,0 +1,74 @@
+name: Doc-Processing CI
+
+on:
+  push:
+    branches: [main]
+
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch: 
+
+jobs:
+
+
+  build-scan:
+    runs-on: ubuntu-latest
+    #needs: [gitleaks,sonarqube,depchecktest]
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t aliashmawy/doc-processing:${{ github.sha }} .
+
+      - name: check image size
+        run: docker image ls
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'aliashmawy/doc-processing:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Generate SBOM
+        uses: aquasecurity/trivy-action@0.18.0
+        with:
+          image-ref: aliashmawy/doc-processing:${{ github.sha }}
+          format: 'spdx-json'
+          output: 'sbom-doc-processing.spdx.json'
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-doc-processing
+          path: sbom-doc-processing.spdx.json
+          retention-days: 90
+
+      - name: Generate SARIF
+        if: always()
+        uses: aquasecurity/trivy-action@0.18.0
+        with:
+          image-ref: aliashmawy/doc-processing:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-doc-processing-results.sarif'
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-doc-processing-results.sarif'
+          category: trivy-python
+
+      - name: Log in to DockerHub
+        if: success()
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push image to DockerHub
+        if: success()
+        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}
