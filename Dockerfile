@@ -20,12 +20,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     uv sync --locked --no-install-project --no-editable
 
-# CRITICAL: Uninstall GPU PyTorch and install CPU-only version
-# This saves ~6GB by removing nvidia, triton, and CUDA libraries
-RUN /app/.venv/bin/pip uninstall -y torch torchvision torchaudio && \
-    /app/.venv/bin/pip install --no-cache-dir \
-    torch torchvision --index-url https://download.pytorch.org/whl/cpu
-
 # Copy full project source
 ADD . /app
 
@@ -33,12 +27,7 @@ ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable
 
-# Verify PyTorch is CPU-only and show size
-RUN /app/.venv/bin/python -c "import torch; assert not torch.cuda.is_available(), 'CUDA should not be available!'; print(f'✓ PyTorch CPU-only: {torch.__version__}')" && \
-    echo "=== Virtual Environment Size ===" && \
-    du -sh /app/.venv && \
-    echo "=== Largest Packages ===" && \
-    du -sh /app/.venv/lib/python3.10/site-packages/* | sort -rh | head -10
+
 
 # Set cache directories for model downloads in builder
 ENV HF_HOME=/app/.cache/huggingface
@@ -52,18 +41,6 @@ RUN if [ "$PREDOWNLOAD_MODEL" = "true" ]; then \
         /app/.venv/bin/python -c "from sentence_transformers import SentenceTransformer; \
         SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')"; \
     fi
-
-# Clean up unnecessary files to reduce layer size
-RUN find /app/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
-    find /app/.venv -type f -name "*.pyc" -delete && \
-    find /app/.venv -type f -name "*.pyo" -delete && \
-    find /app/.venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
-    find /app/.venv -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
-    rm -rf /app/.venv/lib/python3.10/site-packages/*/tests && \
-    rm -rf /app/.venv/lib/python3.10/site-packages/torch/test && \
-    rm -rf /app/.venv/lib/python3.10/site-packages/*/benchmarks 2>/dev/null || true
-
-
 
 FROM python:3.10-slim
 
