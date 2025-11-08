@@ -19,6 +19,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build Docker image
         run: docker build --no-cache -t aliashmawy/doc-processing:${{ github.sha }} .
