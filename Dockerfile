@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.10-alpine AS builder
+FROM ghcr.io/astral-sh/uv:python3.10-slim AS builder
 
 
 WORKDIR /app
@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 
 
-FROM python:3.10-alpine
+FROM python:3.10-slim
 
 
 WORKDIR /app
