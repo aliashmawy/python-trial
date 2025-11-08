@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y \
     libtesseract-dev \
     libleptonica-dev \
     poppler-utils \
-    poppler-cpp \
+    libpoppler-cpp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 
