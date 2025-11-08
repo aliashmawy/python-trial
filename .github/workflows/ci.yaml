@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build Docker image
-        run: docker build --no-cache -t aliashmawy/doc-processing:${{ github.sha }} .
+        run: docker build -t aliashmawy/doc-processing:${{ github.sha }} .
 
       - name: check image size
         run: docker image ls
